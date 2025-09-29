@@ -2,6 +2,7 @@ import sklearn as sk
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+from sklearn import linear_model
 
 #Data set:
 # id:24--48--24 
@@ -26,7 +27,7 @@ x2Neg = []
 # index
 idx = 0
 
-# need to get contents of cell using .iloc, see w2schools for more info
+# need to get contents of cell using .iloc, see w3schools for more info
 for i in range(len(Y)):
     if(Y.iloc[idx] == 1):
         # if value at position idx is 1
@@ -46,3 +47,13 @@ plt.xlabel("Column 0 data") # X axis label
 plt.ylabel("Column 1 data") # Y axis label
 plt.legend(loc = "upper right") # adding legend to plot and forcing it to top-right corner
 plt.show() # show plot
+
+# a) ii) Train Logistic Regression classifier on data
+# coded with help from SciKit-Learn : https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LogisticRegression.html
+
+xConcat = pd.concat([X1, X2], axis = "columns") # concatenate X1 and X2 to pass them into logistic regression function
+logisticReg = linear_model.LogisticRegression() # set up logistic regression model object (https://realpython.com/pandas-merge-join-and-concat/)
+logisticReg.fit(xConcat, Y) # train LR object by passing in concatenated X1, X2 and label Y
+intercept = logisticReg.intercept_
+coefficient = logisticReg.coef_
+print("Intercept: ", intercept, "\nCoefficient: ", coefficient)
