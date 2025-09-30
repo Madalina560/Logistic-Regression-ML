@@ -40,14 +40,6 @@ for i in range(len(Y)):
         idx += 1 # increment index
 
 
-plt.scatter(x1Pos, x2Pos, c = "red", marker = "+", label = "+1") # plot rows where Y = 1 on a scatter plot
-plt.scatter(x1Neg, x2Neg, c = "blue", marker = "_", label = "-1") # plot rows where Y = -1 on a scatter plot
-plt.title("Visualisation of +/-1") # plot title
-plt.xlabel("Column 0 data") # X axis label
-plt.ylabel("Column 1 data") # Y axis label
-plt.legend(loc = "upper right") # adding legend to plot and forcing it to top-right corner
-plt.show() # show plot
-
 # a) ii) Train Logistic Regression classifier on data
 # coded with help from SciKit-Learn : https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LogisticRegression.html
 
@@ -65,3 +57,44 @@ def logRegProbability(logisticReg, xConcat):
 intercept = logisticReg.intercept_
 coefficient = logisticReg.coef_
 print("Intercept: ", intercept, "\nCoefficient: ", coefficient)
+
+yPrediction = logisticReg.predict(xConcat)
+
+# compute decision boundary in terms of X2
+coeff = logisticReg.coef_[0] # to get coefficients out from coef_
+x1Coeff = coeff[0] # get X1 coefficient (B1)
+x2Coeff = coeff[1] # get X2 coefficient (B2)
+xmin = X1.min() # get minimum value in X1
+xmax = X1.max() # get maximum value in X1
+print(xmin) # debugging
+print(xmax) # degubbing
+
+c = -(intercept / x2Coeff) # B0 / B2
+mxMin = -((x1Coeff * xmin) / x2Coeff) # get the minimum point
+mxMax = -((x1Coeff * xmax) / x2Coeff) # get the maximum point
+
+x2Min = mxMin + c # add intercept to shift the point
+x2Max = mxMax + c # add intercept to shift the point
+
+print(x2Min, x2Max) # debugging
+
+x2Arr = [x2Min, x2Max]
+
+# everything that needs to be plotted, will be coded here:
+
+# Plot for a) i)
+plt.rcParams['figure.constrained_layout.use'] = True # adjusting spacing so labels, titles & ledgends don't overlap
+plt.scatter(x1Pos, x2Pos, c = "red", marker = "+", label = "+1") # plot rows where Y = 1 on a scatter plot
+plt.scatter(x1Neg, x2Neg, c = "blue", marker = "_", label = "-1") # plot rows where Y = -1 on a scatter plot
+
+# Plot for a) ii)
+plt.scatter(xConcat.iloc[:,0], Y, c = "green", marker = "d", label = "Training Data") # plot training data
+plt.scatter(xConcat.iloc[:,0], yPrediction, c = "magenta", marker = ".", label = "Prediction Data") # plot predicted data
+
+plt.plot(x2Arr, linestyle = "solid")
+
+plt.title("Visualisation of +/-1") # plot title
+plt.xlabel("Column 0 data") # X axis label
+plt.ylabel("Column 1 data") # Y axis label
+plt.legend(loc = "upper right") # adding legend to plot and forcing it to top-right corner
+plt.show() # show plot
