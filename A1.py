@@ -54,6 +54,14 @@ plt.show() # show plot
 xConcat = pd.concat([X1, X2], axis = "columns") # concatenate X1 and X2 to pass them into logistic regression function
 logisticReg = linear_model.LogisticRegression() # set up logistic regression model object (https://realpython.com/pandas-merge-join-and-concat/)
 logisticReg.fit(xConcat, Y) # train LR object by passing in concatenated X1, X2 and label Y
+
+def logRegProbability(logisticReg, xConcat):
+    logRegOdds = logisticReg.coef_ * xConcat + logisticReg.intercept_
+    odds = np.exp(logRegOdds)
+    prob = odds / (1 + odds)
+    print("Probability: ", prob)
+    return prob
+
 intercept = logisticReg.intercept_
 coefficient = logisticReg.coef_
 print("Intercept: ", intercept, "\nCoefficient: ", coefficient)
