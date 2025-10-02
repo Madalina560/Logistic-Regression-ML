@@ -58,6 +58,7 @@ intercept = logisticReg.intercept_
 coefficient = logisticReg.coef_
 print("Intercept: ", intercept, "\nCoefficient: ", coefficient)
 
+# a) iii) Predict & plot target values,& plot decision boundary
 yPrediction = logisticReg.predict(xConcat)
 
 # compute decision boundary in terms of X2
@@ -75,10 +76,9 @@ mxMax = -((x1Coeff * xmax) / x2Coeff) # get the maximum point
 
 x2Min = mxMin + c # add intercept to shift the point
 x2Max = mxMax + c # add intercept to shift the point
-
+x2Points = [x2Min, x2Max] # add X2 points to array
+x1Points = [xmin, xmax] # add X1 points to array
 print(x2Min, x2Max) # debugging
-
-x2Arr = [x2Min, x2Max]
 
 # everything that needs to be plotted, will be coded here:
 
@@ -91,7 +91,8 @@ plt.scatter(x1Neg, x2Neg, c = "blue", marker = "_", label = "-1") # plot rows wh
 plt.scatter(xConcat.iloc[:,0], Y, c = "green", marker = "d", label = "Training Data") # plot training data
 plt.scatter(xConcat.iloc[:,0], yPrediction, c = "magenta", marker = ".", label = "Prediction Data") # plot predicted data
 
-plt.plot(x2Arr, linestyle = "solid")
+# Line plot for a) iii)
+plt.plot(x1Points, x2Points, linestyle = "solid", color = "darkgreen") # plot the decision boundary
 
 plt.title("Visualisation of +/-1") # plot title
 plt.xlabel("Column 0 data") # X axis label
