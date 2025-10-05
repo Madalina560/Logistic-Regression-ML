@@ -2,6 +2,8 @@ import sklearn as sk
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+from sklearn.preprocessing import PolynomialFeatures # for a) ii)
+from sklearn.linear_model import LogisticRegression # for a) ii)
 from sklearn import linear_model # for a) ii)
 from sklearn.svm import LinearSVC # for b) i)
 
@@ -43,44 +45,62 @@ for i in range(len(Y)):
 
 # a) ii) Train Logistic Regression classifier on data
 # coded with help from SciKit-Learn : https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LogisticRegression.html
-
 xConcat = pd.concat([X1, X2], axis = "columns") # concatenate X1 and X2 to pass them into logistic regression function
-logisticReg = linear_model.LogisticRegression() # set up logistic regression model object (https://realpython.com/pandas-merge-join-and-concat/)
-logisticReg.fit(xConcat, Y) # train LR object by passing in concatenated X1, X2 and label Y
 
-# potentially useless code, review
-def logRegProbability(logisticReg, xConcat):
-    logRegOdds = logisticReg.coef_ * xConcat + logisticReg.intercept_
-    odds = np.exp(logRegOdds)
-    prob = odds / (1 + odds)
-    print("Probability: ", prob)
-    return prob
+polyLogReg = PolynomialFeatures(degree=2) # set up polynomial logistic regression to be quadratic
+XTrainPoly = polyLogReg.fit_transform(xConcat) # convert X1 and X2 data to be able to work w/ polynomial logistic regression
 
-intercept = logisticReg.intercept_
-coefficient = logisticReg.coef_
-print("Intercept: ", intercept, "\nCoefficient: ", coefficient)
+polyLogRegModel = LogisticRegression() # train logistic regression on polynomial X1 and X2
+polyLogRegModel.fit(XTrainPoly, Y) # Fit training data w/ labels
+
+# CODE FOR LINEAR LOGISTIC REGRESSION (Initial Solution)
+# logisticReg = linear_model.LogisticRegression() # set up logistic regression model object (https://realpython.com/pandas-merge-join-and-concat/)
+# logisticReg.fit(xConcat, Y) # train LR object by passing in concatenated X1, X2 and label Y
 
 # a) iii) Predict & plot target values,& plot decision boundary
-yPrediction = logisticReg.predict(xConcat)
+yPrediction = polyLogRegModel.predict(XTrainPoly) # predictions made on polynomial training data
 
+def decisionBoundaryPlot(X, y, model, poly) :
+    xMin, xMax = X.iloc[:,0].min() - 0.1, X.iloc[:,0].max() # get max & min X1 points, & add padding to be displayed on scatter plot (- 0.1)
+    yMin, yMax = X.iloc[:,1].min() - 0.1, X.iloc[:,1].max() # get max & min X2 points, & add padding to be displayed on scatter plot (- 0.1)
+
+    xx, yy = np.meshgrid(np.arange(xMin, xMax, 0.001),
+                         np.arange(yMin, yMax, 0.001)) # create a grid for points to be plotted on, (0.001 affects decision boundary, making it appear less blocky)
+    Z = model.predict(poly.transform(np.c_[xx.ravel(), yy.ravel()])) # helps model predict where a point will go, by looking at every block in the grid
+    Z = Z.reshape(xx.shape) # alligns grid to plot decision boundary
+    plt.contour(xx, yy, Z, levels = [0.5], alpha = 0.8) # plot decision boundary, where Y = 0.5 (constrained by levels parameter)
+    plt.rcParams['figure.constrained_layout.use'] = True # adjusting spacing so labels, titles & ledgends don't overlap
+    plt.scatter(xConcat.iloc[:,0], Y, c = "green", marker = "d", label = "Training Data") # plot training data
+    plt.scatter(xConcat.iloc[:,0], yPrediction, c = "magenta", marker = ".", label = "Prediction Data") # plot predicted data
+    # plt.scatter(x1Pos, x2Pos, c = "red", marker = "+", label = "+1") # plot rows where Y = 1 on a scatter plot
+    # plt.scatter(x1Neg, x2Neg, c = "blue", marker = "_", label = "-1") # plot rows where Y = -1 on a scatter plot
+
+
+    plt.title("Visualisation of +/-1") # plot title
+    plt.xlabel("Column 0 data") # X axis label
+    plt.ylabel("Column 1 data") # Y axis label
+    plt.legend(loc = "upper right") # adding legend to plot and forcing it to top-right corner
+    plt.show()
+
+decisionBoundaryPlot(xConcat, Y, polyLogRegModel, polyLogReg)
 # compute decision boundary in terms of X2
-coeff = logisticReg.coef_[0] # to get coefficients out from coef_
-x1Coeff = coeff[0] # get X1 coefficient (B1)
-x2Coeff = coeff[1] # get X2 coefficient (B2)
-xmin = X1.min() # get minimum value in X1
-xmax = X1.max() # get maximum value in X1
-print(xmin) # debugging
-print(xmax) # degubbing
+# coeff = logisticReg.coef_[0] # to get coefficients out from coef_
+# x1Coeff = coeff[0] # get X1 coefficient (B1)
+# x2Coeff = coeff[1] # get X2 coefficient (B2)
+# xmin = X1.min() # get minimum value in X1
+# xmax = X1.max() # get maximum value in X1
+# print(xmin) # debugging
+# print(xmax) # degubbing
 
-c = -(intercept / x2Coeff) # B0 / B2
-mxMin = -((x1Coeff * xmin) / x2Coeff) # get the minimum point
-mxMax = -((x1Coeff * xmax) / x2Coeff) # get the maximum point
+# c = -(intercept / x2Coeff) # B0 / B2
+# mxMin = -((x1Coeff * xmin) / x2Coeff) # get the minimum point
+# mxMax = -((x1Coeff * xmax) / x2Coeff) # get the maximum point
 
-x2Min = mxMin + c # add intercept to shift the point
-x2Max = mxMax + c # add intercept to shift the point
-x2Points = [x2Min, x2Max] # add X2 points to array
-x1Points = [xmin, xmax] # add X1 points to array
-print(x2Min, x2Max) # debugging
+# x2Min = mxMin + c # add intercept to shift the point
+# x2Max = mxMax + c # add intercept to shift the point
+# x2Points = [x2Min, x2Max] # add X2 points to array
+# x1Points = [xmin, xmax] # add X1 points to array
+# print(x2Min, x2Max) # debugging
 
 # b) i) Train linear SVM models w/ range of penalty parameters
 # C = 0.01
@@ -183,44 +203,34 @@ for i5 in range(len(yModel5)):
 
 # Comment out all question a) plots when running plots for question b)
 # Plot for a) i)
-plt.rcParams['figure.constrained_layout.use'] = True # adjusting spacing so labels, titles & ledgends don't overlap
-# plt.scatter(x1Pos, x2Pos, c = "red", marker = "+", label = "+1") # plot rows where Y = 1 on a scatter plot
-# plt.scatter(x1Neg, x2Neg, c = "blue", marker = "_", label = "-1") # plot rows where Y = -1 on a scatter plot
+# plt.rcParams['figure.constrained_layout.use'] = True # adjusting spacing so labels, titles & ledgends don't overlap
+
 
 # # Plot for a) ii)
-# plt.scatter(xConcat.iloc[:,0], Y, c = "green", marker = "d", label = "Training Data") # plot training data
-# plt.scatter(xConcat.iloc[:,0], yPrediction, c = "magenta", marker = ".", label = "Prediction Data") # plot predicted data
 
 # # Line plot for a) iii)
 # plt.plot(x1Points, x2Points, linestyle = "solid", color = "darkgreen") # plot the decision boundary
 
-# # additional plot information for question a)
-# plt.title("Visualisation of +/-1") # plot title
-# plt.xlabel("Column 0 data") # X axis label
-# plt.ylabel("Column 1 data") # Y axis label
-# plt.legend(loc = "upper right") # adding legend to plot and forcing it to top-right corner
-# plt.show() # show plot
-
 # Plot for b) i)
 # plt.scatter(x1Pos, x2Pos, c = "red", marker = "+", label = "+1") # plot rows where Y = 1 on a scatter plot
-plt.scatter(s1x1Pos, s1x2Pos, c = "red", marker = "^", label = "SVM1 +1 Predictions") # plot positive predictions for SVM1
-plt.scatter(s1x1Neg, s1x2Neg, c = "blue", marker = "v", label = "SVM1 -1 Predictions") # plot negative predictions for SVM1
+# plt.scatter(s1x1Pos, s1x2Pos, c = "red", marker = "^", label = "SVM1 +1 Predictions") # plot positive predictions for SVM1
+# plt.scatter(s1x1Neg, s1x2Neg, c = "blue", marker = "v", label = "SVM1 -1 Predictions") # plot negative predictions for SVM1
 
-plt.scatter(s2x1Pos, s2x2Pos, c = "blue", marker = "^", label = "SVM2 Predictions") # plot positive predictions for SVM2
-plt.scatter(s2x1Neg, s2x2Neg, c = "green", marker = "v", label = "SVM2 -1 Predictions") # plot negative predictions for SVM2
+# plt.scatter(s2x1Pos, s2x2Pos, c = "blue", marker = "^", label = "SVM2 Predictions") # plot positive predictions for SVM2
+# plt.scatter(s2x1Neg, s2x2Neg, c = "green", marker = "v", label = "SVM2 -1 Predictions") # plot negative predictions for SVM2
 
-plt.scatter(s3x1Pos, s3x2Pos, c = "green", marker = "p", label = "SVM3 Predictions") # plot postitive predictions for SVM3
-plt.scatter(s3x1Neg, s3x2Neg, c = "red", marker = "v", label = "SVM3 -1 Predictions") # plot negative predictions for SVM3
+# plt.scatter(s3x1Pos, s3x2Pos, c = "green", marker = "p", label = "SVM3 Predictions") # plot postitive predictions for SVM3
+# plt.scatter(s3x1Neg, s3x2Neg, c = "red", marker = "v", label = "SVM3 -1 Predictions") # plot negative predictions for SVM3
 
-plt.scatter(s4x1Pos, s4x2Pos, c = "indigo", marker = "*", label = "SVM4 Predictions") # plot positive predictions for SVM4
-plt.scatter(s4x1Neg, s4x2Neg, c = "magenta", marker = "v", label = "SVM4 -1 Predictions") # plot negative predictions for SVM4
+# plt.scatter(s4x1Pos, s4x2Pos, c = "indigo", marker = "*", label = "SVM4 Predictions") # plot positive predictions for SVM4
+# plt.scatter(s4x1Neg, s4x2Neg, c = "magenta", marker = "v", label = "SVM4 -1 Predictions") # plot negative predictions for SVM4
 
-plt.scatter(s5x1Pos, s5x2Pos, c = "deeppink", marker = "d", label = "SVM5 Predictions") # plot positive predictions for SVM5
-plt.scatter(s5x1Neg, s5x2Neg, c = "yellow", marker = "v", label = "SVM5 -1 Predictions") # plot negative predictions for SVM5
+# plt.scatter(s5x1Pos, s5x2Pos, c = "deeppink", marker = "d", label = "SVM5 Predictions") # plot positive predictions for SVM5
+# plt.scatter(s5x1Neg, s5x2Neg, c = "yellow", marker = "v", label = "SVM5 -1 Predictions") # plot negative predictions for SVM5
 
-# additional plot information
-plt.title("Predictions Visualisation for SMV with differing C Penalties")
-plt.xlabel("Column 0 data")
-plt.ylabel("Column 1 data")
-plt.legend(loc = "upper right")
-plt.show()
+# # additional plot information
+# plt.title("Predictions Visualisation for SMV with differing C Penalties")
+# plt.xlabel("Column 0 data")
+# plt.ylabel("Column 1 data")
+# plt.legend(loc = "upper right")
+# plt.show()
