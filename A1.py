@@ -2,14 +2,18 @@ import sklearn as sk
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-from sklearn.preprocessing import PolynomialFeatures # for a) ii)
 from sklearn.linear_model import LogisticRegression # for a) ii)
 from sklearn import linear_model # for a) ii)
 from sklearn.svm import LinearSVC # for b) i)
+from sklearn.metrics import accuracy_score
+from sklearn.dummy import DummyClassifier
+
 
 #Data set:
 # id:24--48--24 
 
+# NOTE: you will have to comment out the scatter plots that aren't related to the question you are marking,
+# because all of the data will stack on top of each other
 
 # import data (week2.csv, given in assignment sheet)
 df = pd.read_csv("week2.csv")
@@ -44,54 +48,14 @@ for i in range(len(Y)):
 
 
 # a) ii) Train Logistic Regression classifier on data
-# coded with help from GeeksforGeeks: https://www.geeksforgeeks.org/machine-learning/logistic-regression-with-polynomial-features/ (POLYNOMIAL)
+# coded with help from SciKit-Learn : https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LogisticRegression.html
 xConcat = pd.concat([X1, X2], axis = "columns") # concatenate X1 and X2 to pass them into logistic regression function
 logisticReg = linear_model.LogisticRegression() # set up logistic regression model object (https://realpython.com/pandas-merge-join-and-concat/)
 logisticReg.fit(xConcat, Y) # train LR object by passing in concatenated X1, X2 and label Y
 
-# polyLogReg = PolynomialFeatures(degree=2) # set up polynomial logistic regression to be quadratic
-# XTrainPoly = polyLogReg.fit_transform(xConcat) # convert X1 and X2 data to be able to work w/ polynomial logistic regression
-
-# polyLogRegModel = LogisticRegression(penalty = None) # train logistic regression on polynomial X1 and X2
-# polyLogRegModel.fit(XTrainPoly, Y) # Fit training data w/ labels
-
-# print("Intercept: ", polyLogRegModel.intercept_, "\nCoefficients: ", polyLogRegModel.coef_) # print intercept & coefficients
-
-# CODE FOR LINEAR LOGISTIC REGRESSION (Initial Solution)
-# coded with help from SciKit-Learn : https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LogisticRegression.html
-# logisticReg = linear_model.LogisticRegression() # set up logistic regression model object (https://realpython.com/pandas-merge-join-and-concat/)
-# logisticReg.fit(xConcat, Y) # train LR object by passing in concatenated X1, X2 and label Y
-
 # a) iii) Predict & plot target values,& plot decision boundary
 yPrediction = logisticReg.predict(xConcat)
-
-
-# FOR POLYNOMIAL, REVISIT
-# yPrediction = polyLogRegModel.predict(XTrainPoly) # predictions made on polynomial training data
-
-# def decisionBoundaryPlot(X, y, model, poly) :
-#     xMin, xMax = X.iloc[:,0].min() - 0.1, X.iloc[:,0].max() # get max & min X1 points, & add padding to be displayed on scatter plot (- 0.1)
-#     yMin, yMax = X.iloc[:,1].min() - 0.1, X.iloc[:,1].max() # get max & min X2 points, & add padding to be displayed on scatter plot (- 0.1)
-
-#     xx, yy = np.meshgrid(np.arange(xMin, xMax, 0.001),
-#                          np.arange(yMin, yMax, 0.001)) # create a grid for points to be plotted on, (0.001 affects decision boundary, making it appear less blocky)
-#     Z = model.predict(poly.transform(np.c_[xx.ravel(), yy.ravel()])) # helps model predict where a point will go, by looking at every block in the grid
-#     Z = Z.reshape(xx.shape) # alligns grid to plot decision boundary
-#     plt.contour(xx, yy, Z, levels = [0.5], alpha = 0.8) # plot decision boundary, where Y = 0.5 (constrained by levels parameter)
-#     plt.rcParams['figure.constrained_layout.use'] = True # adjusting spacing so labels, titles & ledgends don't overlap
-#     plt.scatter(xConcat.iloc[:,0], Y, c = "green", marker = "d", label = "Training Data") # plot training data
-#     plt.scatter(xConcat.iloc[:,0], yPrediction, c = "magenta", marker = ".", label = "Prediction Data") # plot predicted data
-#     # plt.scatter(x1Pos, x2Pos, c = "red", marker = "+", label = "+1") # plot rows where Y = 1 on a scatter plot
-#     # plt.scatter(x1Neg, x2Neg, c = "blue", marker = "_", label = "-1") # plot rows where Y = -1 on a scatter plot
-
-
-#     plt.title("Visualisation of +/-1") # plot title
-#     plt.xlabel("Column 0 data") # X axis label
-#     plt.ylabel("Column 1 data") # Y axis label
-#     plt.legend(loc = "upper right") # adding legend to plot and forcing it to top-right corner
-#     plt.show()
-
-# decisionBoundaryPlot(xConcat, Y, polyLogRegModel, polyLogReg)
+print("Accuracy: ", (accuracy_score(Y, yPrediction) * 100), "\n")
 
 # compute decision boundary in terms of X2
 intercept = logisticReg.intercept_
@@ -100,8 +64,6 @@ x1Coeff = coeff[0] # get X1 coefficient (B1)
 x2Coeff = coeff[1] # get X2 coefficient (B2)
 xmin = X1.min() # get minimum value in X1
 xmax = X1.max() # get maximum value in X1
-print(xmin) # debugging
-print(xmax) # degubbing
 
 c = -(intercept / x2Coeff) # B0 / B2
 mxMin = -((x1Coeff * xmin) / x2Coeff) # get the minimum point
@@ -116,8 +78,9 @@ print(x2Min, x2Max) # debugging
 # b) i) Train linear SVM models w/ range of penalty parameters
 # C = 0.01
 svmModel1 = LinearSVC(C = 0.001).fit(xConcat, Y) # Use a penalty of 0.001, and pass in concatenated X1, X2 and Y labels
-print("C = 0.001\nIntercept: ", svmModel1.intercept_, "\nCoefficient: ", svmModel1.coef_, "\n") # print intercept & coefficients
+print("C = 0.001\nIntercept: ", svmModel1.intercept_, "\nCoefficient: ", svmModel1.coef_) # print intercept & coefficients
 yModel1 = svmModel1.predict(xConcat) # predict target values w/ SVM1, C = 0.001 [for b) ii)]
+print("Accuracy: ", (accuracy_score(Y, yModel1) * 100), "\n")
 
 s1x1Pos = []
 s1x2Pos = []
@@ -135,8 +98,9 @@ for i1 in range(len(yModel1)):
 
 # C = 1
 svmModel3 = LinearSVC(C = 1).fit(xConcat, Y) # Use a penalty of 1, and pass in concatenated X1, X2 and Y labels
-print("C = 1\nIntercept: ", svmModel3.intercept_, "\nCoefficient: ", svmModel3.coef_, "\n") # print intercept & coefficients
+print("C = 1\nIntercept: ", svmModel3.intercept_, "\nCoefficient: ", svmModel3.coef_) # print intercept & coefficients
 yModel3 = svmModel3.predict(xConcat) # predict target values w/ SVM3, C = 1 [for b) ii)]
+print("Accuracy: ", (accuracy_score(Y, yModel3) * 100), "\n")
 
 s3x1Pos = []
 s3x2Pos = []
@@ -154,8 +118,9 @@ for i3 in range(len(yModel3)):
 
 # C = 100
 svmModel5 = LinearSVC(C = 100).fit(xConcat, Y) # Use a penalty of 100, and pass in concatenated X1, X2 and Y labels
-print("C = 100\nIntercept: ", svmModel5.intercept_, "\nCoefficient: ", svmModel5.coef_, "\n") # print intercept & coefficients
+print("C = 100\nIntercept: ", svmModel5.intercept_, "\nCoefficient: ", svmModel5.coef_) # print intercept & coefficients
 yModel5 = svmModel5.predict(xConcat) # predict target values w/ SVM5, C = 100 [for b) ii)]
+print("Accuracy: ", (accuracy_score(Y, yModel5) * 100), "\n")
 
 s5x1Pos = []
 s5x2Pos = []
@@ -175,7 +140,6 @@ for i5 in range(len(yModel5)):
 # predictions done in conjunction w/ b) i)
 
 # create & plot decision boundaries
-# coded with help from GeeksforGeeks: https://www.geeksforgeeks.org/machine-learning/visualizing-support-vector-machines-svm-using-python/
 # plot using (intercept + X1 Coefficient * X1 / X2 coefficient)
 xValues = np.linspace(X[:,0].min(), X[:,0].max(), 50)
 y1 = - (svmModel1.intercept_ + (svmModel1.coef_[0][0] * xValues) / svmModel1.coef_[0][1])
@@ -188,29 +152,54 @@ plt.plot(xValues, y2, color = "green", linestyle = "--", label = "C = 1")
 plt.plot(xValues, y3, color = "blue", linestyle = ":", linewidth = 10, label = "C = 100")
 plt.scatter(X[:, 0], X[:, 1], c=Y, cmap=plt.cm.Paired)
 
-# everything that needs to be plotted, will be coded here:
+# c) i) Create 2 additional features, by adding square of each feature
+# coded with help from SciKit-Learn : https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LogisticRegression.html
+x1Squ = X1 ** 2 # square X1
+x2Squ = X2 ** 2 # square X2
+
+xSqu = np.column_stack((X1, X2, x1Squ, x2Squ)) # concatenate X1, X2 & square of X1 and X2
+sqModel = LogisticRegression() # set up LR object
+sqModel.fit(xSqu, Y) # train LR object by passing in concatenated X1, X2, X1Sq, X2Sq & label Y
+
+print("Intercept: ", sqModel.intercept_, "Coefficients: ", sqModel.coef_)
+
+# c) ii) Plot and predict target values from quadratic LR
+ySqPrediction = sqModel.predict(xSqu)
+print("Accuracy: ", (accuracy_score(Y, ySqPrediction) * 100), "\n")
+
+# c) iii) Compare performance against baseline predictor
+# coded with help from SciKit Learn: https://scikit-learn.org/stable/modules/generated/sklearn.dummy.DummyClassifier.html
+baselineModel = DummyClassifier(strategy= "most_frequent") # set up dummy classifier
+baselineModel.fit(xSqu, Y) # fit quadratic features to dummy
+basePrediction = baselineModel.predict(xSqu)
+print("Accuracy", (accuracy_score(Y, basePrediction) * 100), "\n")
+
+# c) iv) Plot Decision boundary
+
+
+# everything that needs to be plotted, will be mostly here:
 plt.rcParams['figure.constrained_layout.use'] = True # adjusting spacing so labels, titles & ledgends don't overlap
 
 # Comment out all question a) plots when running plots for question b)
 # Plot for a) i)
-# plt.scatter(x1Pos, x2Pos, c = "red", marker = "+", label = "+1") # plot rows where Y = 1 on a scatter plot
-# plt.scatter(x1Neg, x2Neg, c = "blue", marker = "_", label = "-1") # plot rows where Y = -1 on a scatter plot
+plt.scatter(x1Pos, x2Pos, c = "red", marker = "+", label = "+1") # plot rows where Y = 1 on a scatter plot
+plt.scatter(x1Neg, x2Neg, c = "blue", marker = "_", label = "-1") # plot rows where Y = -1 on a scatter plot
 
 
 # # Plot for a) ii)
-# plt.scatter(xConcat.iloc[:,0], Y, c = "green", marker = "d", label = "Training Data") # plot training data
-# plt.scatter(xConcat.iloc[:,0], yPrediction, c = "magenta", marker = ".", label = "Prediction Data") # plot predicted data
+plt.scatter(xConcat.iloc[:,0], Y, c = "green", marker = "d", label = "Training Data") # plot training data
+plt.scatter(xConcat.iloc[:,0], yPrediction, c = "magenta", marker = ".", label = "Prediction Data") # plot predicted data
 
 
 # # # Line plot for a) iii)
-# plt.plot(x1Points, x2Points, linestyle = "solid", color = "darkgreen") # plot the decision boundary
+plt.plot(x1Points, x2Points, linestyle = "solid", color = "darkgreen") # plot the decision boundary
 
 # # Additional Info for a) plots
-# plt.title("Visualisation of +/-1") # plot title
-# plt.xlabel("Column 0 data") # X axis label
-# plt.ylabel("Column 1 data") # Y axis label
-# plt.legend(loc = "upper right") # adding legend to plot and forcing it to top-right corner
-# plt.show()
+plt.title("Visualisation of +/-1") # plot title
+plt.xlabel("Column 0 data") # X axis label
+plt.ylabel("Column 1 data") # Y axis label
+plt.legend(loc = "upper right") # adding legend to plot and forcing it to top-right corner
+plt.show()
 
 # Plot for b) i)
 plt.scatter(s1x1Pos, s1x2Pos, c = "red", marker = "s", label = "SVM1 +1 Predictions C = 0.001") # plot positive predictions for SVM1
@@ -222,8 +211,25 @@ plt.scatter(s3x1Neg, s3x2Neg, c = "orange", marker = ".", label = "SVM3 -1 Predi
 plt.scatter(s5x1Pos, s5x2Pos, c = "yellow", marker = "|", label = "SVM5 Predictions C = 100") # plot positive predictions for SVM5
 plt.scatter(s5x1Neg, s5x2Neg, c = "deepskyblue", marker = "|", label = "SVM5 -1 Predictions C = 100") # plot negative predictions for SVM5
 
-# additional plot information
+# additional info for b) plots
 plt.title("Predictions Visualisation for SVM with differing C Penalties")
+plt.xlabel("Column 0 data")
+plt.ylabel("Column 1 data")
+plt.legend(loc = "upper right", bbox_to_anchor =(1.2, 1.2))
+plt.tight_layout()
+plt.show()
+
+# Plot for c) ii)
+plt.scatter(xConcat.iloc[:,0], Y, c = "green", marker = "d", label = "Training Data") # plot training data
+plt.scatter(xConcat.iloc[:,0], yPrediction, c = "magenta", marker = ".", label = "Prediction Data") # plot predicted data
+
+plt.scatter(xSqu[:,0], Y, c = "indigo", marker = "d", label = "Training Data") # plot training data
+plt.scatter(xSqu[:,0], ySqPrediction, c = "green", marker = ".", label = "Prediction Data") # plot prediction data
+plt.scatter(x1Pos, x2Pos, c = "red", marker = "+", label = "+1") # plot rows where Y = 1 on a scatter plot
+plt.scatter(x1Neg, x2Neg, c = "blue", marker = "_", label = "-1") # plot rows where Y = -1 on a scatter plot
+
+# additional infor for c) plots
+plt.title("Visualisation of Training V Predicted Data (Quadratic LR)")
 plt.xlabel("Column 0 data")
 plt.ylabel("Column 1 data")
 plt.legend(loc = "upper right", bbox_to_anchor =(1.2, 1.2))
